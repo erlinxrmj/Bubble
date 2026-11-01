@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="version" content="1.0.0">
+  <meta name="author" content="Erlin Ramaj">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data: bubble-file:; img-src 'self' data: blob: https: http: bubble-file:; media-src 'self' blob: mediastream: https: http: bubble-file:; connect-src *;">
+  <title>Bubble</title>
+  <link rel="stylesheet" href="style.css">
+  <style id="theme-css"></style>
+</head>
+<body>
+  <!-- Theme-Hintergrund (Farbe, Verlauf, Bild, GIF oder Video) -->
+  <div id="theme-bg"><div id="theme-bg-media"></div><div id="theme-bg-overlay"></div></div>
+
+  <!-- Anmeldung -->
+  <div id="auth" class="auth hidden"></div>
+
+  <!-- Haupt-App -->
+  <div id="app" class="app hidden">
+    <nav id="guilds" class="guilds"></nav>
+
+    <aside class="sidebar">
+      <header id="sidebar-header" class="sidebar-header"></header>
+      <div id="channel-list" class="channel-list"></div>
+      <div id="voice-panel" class="voice-panel hidden"></div>
+      <div id="user-panel" class="user-panel"></div>
+    </aside>
+
+    <main id="main" class="main">
+      <div id="conn-banner" class="conn-banner hidden">Verbindung wird wiederhergestellt …</div>
+      <header id="main-header" class="main-header"></header>
+      <div class="main-body">
+        <section id="stage" class="stage"></section>
+        <section id="chat" class="chat">
+          <div id="messages" class="messages"></div>
+          <div class="composer-wrap">
+            <form id="composer" class="composer">
+              <button type="button" id="attach" class="attach" title="Bild oder GIF senden">+</button>
+              <input type="file" id="attach-input" accept="image/png,image/jpeg,image/gif,image/webp" hidden>
+              <textarea id="input" rows="1" maxlength="4000" placeholder="Nachricht"></textarea>
+              <button type="button" id="sb-btn" class="attach sb" title="Soundboard">🔊</button>
+            </form>
+            <div id="soundboard" class="soundboard hidden"></div>
+            <div id="typing" class="typing"></div>
+          </div>
+          <div id="drop-hint" class="drop-hint hidden">Loslassen zum Senden</div>
+        </section>
+        <section id="empty" class="empty"></section>
+      </div>
+    </main>
+
+    <aside id="members" class="members"></aside>
+  </div>
+
+  <div id="modal-root"></div>
+  <div id="menu-root"></div>
+  <div id="toasts" class="toasts"></div>
+  <div id="audio-sink" hidden></div>
+
+  <script src="../node_modules/socket.io-client/dist/socket.io.min.js"></script>
+  <script src="../node_modules/livekit-client/dist/livekit-client.umd.js"></script>
+  <script src="themes.js"></script>
+  <script src="app.js"></script>
+  <script src="features.js"></script>
+</body>
+</html>

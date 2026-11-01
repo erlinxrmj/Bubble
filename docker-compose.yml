@@ -1,0 +1,47 @@
+services:
+  # HTTPS-Zertifikate automatisch (Let's Encrypt) + Weiterleitung
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - server
+      - livekit
+
+  # Chat, Konten, Gruppen
+  server:
+    build: ./server
+    restart: unless-stopped
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+      REGISTRATION_CODE: ${REGISTRATION_CODE}
+      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY}
+      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET}
+      LIVEKIT_PUBLIC_URL: wss://rtc.${DOMAIN}
+    volumes:
+      - ./data:/data
+
+  # Sprache, Video, Bildschirm teilen
+  livekit:
+    image: livekit/livekit-server:latest
+    restart: unless-stopped
+    command: --config /etc/livekit.yaml
+    environment:
+      LIVEKIT_KEYS: "${LIVEKIT_API_KEY}: ${LIVEKIT_API_SECRET}"
+    volumes:
+      - ./livekit.yaml:/etc/livekit.yaml:ro
+    ports:
+      - "7881:7881/tcp"
+      - "50000-50100:50000-50100/udp"
+
+volumes:
+  caddy_data:
+  caddy_config:

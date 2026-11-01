@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1e3a8a"/>
+      <stop offset="0.5" stop-color="#4f46e5"/>
+      <stop offset="1" stop-color="#9333ea"/>
+    </linearGradient>
+    <radialGradient id="glowBg" cx="0.72" cy="0.32" r="0.6">
+      <stop offset="0" stop-color="#38bdf8" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#38bdf8" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="bubble" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.45" stop-color="#e0f2fe"/>
+      <stop offset="1" stop-color="#a5f3fc"/>
+    </linearGradient>
+    <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="person" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0f172a"/>
+      <stop offset="1" stop-color="#1e1b4b"/>
+    </linearGradient>
+    <clipPath id="round"><rect width="512" height="512" rx="116"/></clipPath>
+    <clipPath id="bubbleClip">
+      <path d="M 262 60 H 360 C 424 60 452 96 452 138 C 452 160 442 178 424 191
+               C 454 205 472 232 472 268 C 472 310 438 338 380 338 H 304
+               C 284 362 254 380 214 386 C 236 368 246 350 248 330
+               C 238 322 232 310 232 294 V 90 C 232 72 244 60 262 60 Z"/>
+    </clipPath>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="14" result="blur"/>
+      <feFlood flood-color="#67e8f9" flood-opacity="0.75" result="color"/>
+      <feComposite in="color" in2="blur" operator="in" result="glow"/>
+      <feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#020617" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <g clip-path="url(#round)">
+    <rect width="512" height="512" fill="url(#bg)"/>
+    <rect width="512" height="512" fill="url(#glowBg)"/>
+
+    <!-- Admin-Männchen -->
+    <g filter="url(#shadow)">
+      <circle cx="148" cy="304" r="60" fill="url(#person)"/>
+      <path d="M 26 530 C 26 424 78 382 148 382 C 218 382 270 424 270 530 Z" fill="url(#person)"/>
+      <circle cx="148" cy="304" r="60" fill="none" stroke="#818cf8" stroke-opacity="0.35" stroke-width="4"/>
+    </g>
+
+    <!-- Sprechblase in B-Form -->
+    <g filter="url(#glow)">
+      <path fill="url(#bubble)" fill-rule="evenodd" d="
+        M 262 60 H 360 C 424 60 452 96 452 138 C 452 160 442 178 424 191
+        C 454 205 472 232 472 268 C 472 310 438 338 380 338 H 304
+        C 284 362 254 380 214 386 C 236 368 246 350 248 330
+        C 238 322 232 310 232 294 V 90 C 232 72 244 60 262 60 Z
+        M 290 112 H 360 C 384 112 396 124 396 142 C 396 160 384 172 360 172 H 290 Z
+        M 290 218 H 368 C 396 218 410 232 410 254 C 410 276 396 290 368 290 H 290 Z"/>
+    </g>
+    <!-- Glanz oben -->
+    <g clip-path="url(#bubbleClip)">
+      <path d="M 232 60 H 472 V 100 C 400 92 320 96 232 118 Z" fill="url(#sheen)" opacity="0.7"/>
+    </g>
+  </g>
+</svg>

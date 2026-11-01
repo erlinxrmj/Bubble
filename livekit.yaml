@@ -1,0 +1,13 @@
+# LiveKit – Sprach- und Videoserver
+# Die Schlüssel kommen aus der .env (LIVEKIT_KEYS in docker-compose.yml).
+port: 7880
+rtc:
+  tcp_port: 7881
+  port_range_start: 50000
+  port_range_end: 50100
+  # Öffentliche IP automatisch ermitteln (nötig bei Cloud-Servern)
+  use_external_ip: true
+room:
+  empty_timeout: 300
+logging:
+  level: info
