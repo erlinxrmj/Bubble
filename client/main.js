@@ -253,6 +253,71 @@ ipcMain.handle('sounds:save-file', (e, fileName, data) => {
 });
 ipcMain.handle('sounds:open-folder', () => shell.openPath(ensureSoundsDir()));
 
+// --- Aktivität: laufende Spiele und Spotify erkennen (nur Windows) ---
+const { execFile } = require('child_process');
+const KNOWN_GAMES = {
+  'cs2.exe': 'Counter-Strike 2', 'valorant-win64-shipping.exe': 'VALORANT', 'fortniteclient-win64-shipping.exe': 'Fortnite',
+  'league of legends.exe': 'League of Legends', 'minecraft.windows.exe': 'Minecraft', 'gta5.exe': 'Grand Theft Auto V',
+  'gta5_enhanced.exe': 'Grand Theft Auto V', 'rocketleague.exe': 'Rocket League', 'r5apex.exe': 'Apex Legends',
+  'r5apex_dx12.exe': 'Apex Legends', 'cod.exe': 'Call of Duty', 'overwatch.exe': 'Overwatch 2', 'fc24.exe': 'EA SPORTS FC 24',
+  'fc25.exe': 'EA SPORTS FC 25', 'fc26.exe': 'EA SPORTS FC 26', 'eldenring.exe': 'Elden Ring', 'robloxplayerbeta.exe': 'Roblox',
+  'dota2.exe': 'Dota 2', 'rainbowsix.exe': 'Rainbow Six Siege', 'rainbowsix_vulkan.exe': 'Rainbow Six Siege', 'tslgame.exe': 'PUBG',
+  'fallguys_client_game.exe': 'Fall Guys', 'among us.exe': 'Among Us', 'cyberpunk2077.exe': 'Cyberpunk 2077',
+  'rdr2.exe': 'Red Dead Redemption 2', 'witcher3.exe': 'The Witcher 3', 'deadbydaylight-win64-shipping.exe': 'Dead by Daylight',
+  'rustclient.exe': 'Rust', 'terraria.exe': 'Terraria', 'stardew valley.exe': 'Stardew Valley', 'marvel-win64-shipping.exe': 'Marvel Rivals',
+  'helldivers2.exe': 'Helldivers 2', 'palworld-win64-shipping.exe': 'Palworld', 'bg3.exe': "Baldur's Gate 3", 'bg3_dx11.exe': "Baldur's Gate 3",
+  'hogwartslegacy.exe': 'Hogwarts Legacy', 'forzahorizon5.exe': 'Forza Horizon 5', 'destiny2.exe': 'Destiny 2',
+  'warframe.x64.exe': 'Warframe', 'diablo iv.exe': 'Diablo IV', 'wow.exe': 'World of Warcraft', 'hearthstone.exe': 'Hearthstone',
+  'ts4_x64.exe': 'Die Sims 4', 'eurotrucks2.exe': 'Euro Truck Simulator 2', 'phasmophobia.exe': 'Phasmophobia',
+  'lethal company.exe': 'Lethal Company', 'geometrydash.exe': 'Geometry Dash', 'osu!.exe': 'osu!', 'brawlhalla.exe': 'Brawlhalla',
+  'repo.exe': 'R.E.P.O.', 'schedulei.exe': 'Schedule I', 'thefinals.exe': 'THE FINALS', 'deltaforce-win64-shipping.exe': 'Delta Force',
+  'nba2k25.exe': 'NBA 2K25', 'nba2k26.exe': 'NBA 2K26', 'f1_24.exe': 'F1 24', 'f1_25.exe': 'F1 25', 'stalker2-win64-shipping.exe': 'S.T.A.L.K.E.R. 2',
+  'witchit-win64-shipping.exe': 'Witch It', 'valheim.exe': 'Valheim', 'satisfactory.exe': 'Satisfactory', 'factorio.exe': 'Factorio',
+};
+let activityCfg = { game: true, music: true, custom: {} };
+let lastActivity = null;
+let activityTimer = null;
+
+function parseCsvLine(line) {
+  const out = []; let cur = ''; let q = false;
+  for (const ch of line) {
+    if (ch === '"') q = !q;
+    else if (ch === ',' && !q) { out.push(cur); cur = ''; } else cur += ch;
+  }
+  out.push(cur);
+  return out;
+}
+
+function scanActivity() {
+  if (process.platform !== 'win32' || !win) return;
+  execFile('tasklist', ['/v', '/fo', 'csv', '/nh'], { windowsHide: true, maxBuffer: 16 * 1024 * 1024 }, (err, stdout) => {
+    if (err || !win) return;
+    let game = null; let music = null;
+    const custom = Object.fromEntries(Object.entries(activityCfg.custom || {}).map(([k, v]) => [k.toLowerCase(), v]));
+    for (const line of stdout.split(/\r?\n/)) {
+      if (!line) continue;
+      const cols = parseCsvLine(line);
+      const exe = (cols[0] || '').toLowerCase();
+      const title = cols[cols.length - 1] || '';
+      if (activityCfg.game && !game && (custom[exe] || KNOWN_GAMES[exe])) game = custom[exe] || KNOWN_GAMES[exe];
+      // Spotify zeigt beim Abspielen "Interpret - Titel" als Fenstertitel
+      if (activityCfg.music && !music && exe === 'spotify.exe' && title.includes(' - ') && !/^spotify/i.test(title)) music = title;
+    }
+    const next = game || music ? { game, music } : null;
+    if (JSON.stringify(next) !== JSON.stringify(lastActivity)) {
+      lastActivity = next;
+      win.webContents.send('activity', next);
+    }
+  });
+}
+
+ipcMain.on('activity:config', (e, cfg) => {
+  activityCfg = { game: cfg?.game !== false, music: cfg?.music !== false, custom: cfg?.custom || {} };
+  lastActivity = undefined; // beim nächsten Scan sicher neu senden
+  if (!activityTimer) activityTimer = setInterval(scanActivity, 20000);
+  scanActivity();
+});
+
 // --- Fenster ---
 ipcMain.on('flash', () => {
   if (win && !win.isFocused()) win.flashFrame(true);

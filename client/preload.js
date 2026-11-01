@@ -17,6 +17,10 @@ contextBridge.exposeInMainWorld('bubble', {
     remove: (fileName) => ipcRenderer.invoke('themes:delete', fileName),
     openFolder: () => ipcRenderer.invoke('themes:open-folder'),
   },
+  activity: {
+    configure: (cfg) => ipcRenderer.send('activity:config', cfg),
+    onChange: (cb) => ipcRenderer.on('activity', (e, a) => cb(a)),
+  },
   sounds: {
     saveFile: (fileName, data) => ipcRenderer.invoke('sounds:save-file', fileName, data),
     openFolder: () => ipcRenderer.invoke('sounds:open-folder'),
