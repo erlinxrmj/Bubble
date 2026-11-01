@@ -90,7 +90,7 @@ CREATE TABLE IF NOT EXISTS sounds (
 );
 CREATE INDEX IF NOT EXISTS idx_sounds_user ON sounds(user_id);
 `);
-for (const sql of ['ALTER TABLE users ADD COLUMN avatar TEXT', 'ALTER TABLE guilds ADD COLUMN icon TEXT', 'ALTER TABLE messages ADD COLUMN sound TEXT']) {
+for (const sql of ['ALTER TABLE users ADD COLUMN avatar TEXT', 'ALTER TABLE guilds ADD COLUMN icon TEXT', 'ALTER TABLE messages ADD COLUMN sound TEXT', 'ALTER TABLE users ADD COLUMN bio TEXT', 'ALTER TABLE users ADD COLUMN banner TEXT']) {
   try { db.exec(sql); } catch { /* Spalte existiert schon */ }
 }
 const UPLOAD_DIR = path.join(DATA_DIR, 'uploads');
@@ -110,8 +110,12 @@ const newInviteCode = () => crypto.randomBytes(5).toString('base64url').replace(
 
 const online = new Map();      // userId -> Anzahl offener Verbindungen
 const voice = new Map();       // channelId -> Map(userId -> Zustand)
+const activities = new Map();  // userId -> { game, music } (was jemand gerade spielt/hört)
 
-const publicUser = (u) => u && ({ id: u.id, username: u.username, displayName: u.display_name, color: u.color, avatar: u.avatar || null });
+const publicUser = (u) => u && ({
+  id: u.id, username: u.username, displayName: u.display_name, color: u.color, avatar: u.avatar || null,
+  bio: u.bio || '', banner: u.banner || null, memberSince: u.created_at, activity: activities.get(u.id) || null,
+});
 const isUploadPath = (p) => typeof p === 'string' && /^\/uploads\/[a-zA-Z0-9_-]+\.(png|jpg|gif|webp)$/.test(p);
 const isAudioPath = (p) => typeof p === 'string' && /^\/uploads\/[a-zA-Z0-9_-]+\.(mp3|ogg|wav|webm|m4a)$/.test(p);
 const publicSound = (s) => s && ({
@@ -158,7 +162,7 @@ function userGuilds(uid) {
 }
 
 function userDms(uid) {
-  return S(`SELECT c.id, c.created_at, u.id AS uid, u.username, u.display_name, u.color, u.avatar,
+  return S(`SELECT c.id, c.created_at, u.id AS uid, u.username, u.display_name, u.color, u.avatar, u.bio, u.banner, u.created_at AS since,
               (SELECT MAX(created_at) FROM messages WHERE channel_id=c.id) AS last
             FROM channels c
             JOIN dm_members me ON me.channel_id=c.id AND me.user_id=?
@@ -168,7 +172,10 @@ function userDms(uid) {
             ORDER BY COALESCE(last, c.created_at) DESC`).all(uid, uid)
     .map((r) => ({
       id: r.id,
-      user: { id: r.uid, username: r.username, displayName: r.display_name, color: r.color, avatar: r.avatar || null, online: online.has(r.uid) },
+      user: {
+        id: r.uid, username: r.username, displayName: r.display_name, color: r.color, avatar: r.avatar || null,
+        bio: r.bio || '', banner: r.banner || null, memberSince: r.since, activity: activities.get(r.uid) || null, online: online.has(r.uid),
+      },
       voice: voiceUsers(r.id),
     }));
 }
@@ -285,8 +292,13 @@ app.get('/api/me', auth, wrap((req, res) => {
 }));
 
 app.patch('/api/me', auth, wrap(async (req, res) => {
-  const { displayName, color, password, newPassword, avatar } = req.body || {};
+  const { displayName, color, password, newPassword, avatar, bio, banner } = req.body || {};
   const u = req.user;
+  if (bio !== undefined) S('UPDATE users SET bio=? WHERE id=?').run(String(bio || '').trim().slice(0, 190), u.id);
+  if (banner !== undefined) {
+    if (banner !== null && !isUploadPath(banner)) return fail(res, 400, 'Ungültiger Banner.');
+    S('UPDATE users SET banner=? WHERE id=?').run(banner, u.id);
+  }
   if (avatar !== undefined) {
     if (avatar !== null && !isUploadPath(avatar)) return fail(res, 400, 'Ungültiges Profilbild.');
     S('UPDATE users SET avatar=? WHERE id=?').run(avatar, u.id);
@@ -666,6 +678,16 @@ io.on('connection', (socket) => {
 
   socket.on('voice:leave', () => leaveVoice(socket));
 
+  // Aktivität: was jemand gerade spielt oder auf Spotify hört
+  socket.on('activity:set', (a) => {
+    const clean = (v) => (v ? String(v).trim().slice(0, 100) : null);
+    const next = a && (a.game || a.music) ? { game: clean(a.game), music: clean(a.music) } : null;
+    const prev = activities.get(uid) || null;
+    if (JSON.stringify(prev) === JSON.stringify(next)) return;
+    if (next) activities.set(uid, next); else activities.delete(uid);
+    io.to([...peerRooms(uid), `user:${uid}`]).emit('activity', { userId: uid, activity: next });
+  });
+
   // Anrufe in Direktnachrichten
   const forOthersInDm = (chId, fn) => {
     const ch = getChannel(chId);
@@ -687,6 +709,7 @@ io.on('connection', (socket) => {
     const left = (online.get(uid) || 1) - 1;
     if (left <= 0) {
       online.delete(uid);
+      if (activities.delete(uid)) io.to(peerRooms(uid)).emit('activity', { userId: uid, activity: null });
       io.to(peerRooms(uid)).emit('presence', { userId: uid, online: false });
     } else {
       online.set(uid, left);
