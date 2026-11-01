@@ -1,0 +1,55 @@
+{
+  "name": "bubble",
+  "productName": "Bubble",
+  "version": "1.0.0",
+  "description": "Bubble – Chat, Sprache und Video für Freunde. Entwickelt von Erlin Ramaj.",
+  "main": "main.js",
+  "author": {
+    "name": "Erlin Ramaj",
+    "email": "erlinrmj@proton.me"
+  },
+  "license": "MIT",
+  "scripts": {
+    "icons": "node scripts/icons.js",
+    "prestart": "node scripts/icons.js",
+    "start": "electron .",
+    "predist": "node scripts/icons.js",
+    "dist": "electron-builder --win --publish never"
+  },
+  "dependencies": {
+    "livekit-client": "^2.15.0",
+    "socket.io-client": "^4.8.1"
+  },
+  "devDependencies": {
+    "electron": "^37.2.0",
+    "electron-builder": "^26.0.12",
+    "@resvg/resvg-js": "^2.6.2"
+  },
+  "build": {
+    "appId": "ch.erlin.bubble",
+    "productName": "Bubble",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer/**/*",
+      "assets/**/*"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.png",
+      "legalTrademarks": "Bubble – entwickelt von Erlin Ramaj"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "Bubble",
+      "artifactName": "Bubble-Setup-${version}.exe",
+      "uninstallDisplayName": "Bubble (von Erlin Ramaj)"
+    },
+    "copyright": "© 2026 Erlin Ramaj"
+  }
+}
