@@ -44,6 +44,10 @@ ssh -i pfad/zum/schluessel.key ubuntu@DEINE-IP
 ```
 Dann:
 ```bash
+# Oracle-Ubuntu blockiert Ports zusätzlich in der eigenen Firewall – freigeben:
+sudo iptables -I INPUT -p tcp -m multiport --dports 80,443,7881 -j ACCEPT
+sudo iptables -I INPUT -p udp --dport 50000:50100 -j ACCEPT
+sudo netfilter-persistent save
 curl -fsSL https://get.docker.com | sudo sh
 sudo usermod -aG docker $USER && newgrp docker
 git clone https://github.com/erlinxrmj/Bubble.git   # privates Repo: als Passwort einen GitHub-Token eingeben
