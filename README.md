@@ -18,48 +18,52 @@ Eigener Messenger für dich und deine Freunde – Chat, Sprache, Video und Bilds
 
 ---
 
-## Teil 1: Server einrichten (einmalig, ca. 30–45 Minuten)
+## Teil 1: Server einrichten
 
-### 1. Gratis-Server bei Oracle Cloud (EU)
-1. Konto erstellen auf **cloud.oracle.com** („Always Free“). Als Heimatregion **Switzerland North (Zürich)** oder **Germany Central (Frankfurt)** wählen – das lässt sich später nicht ändern.
-2. *Compute → Instances → Create Instance*
-   - Image: **Ubuntu 24.04**
-   - Shape: **Ampere (VM.Standard.A1.Flex)**, z.B. 2 OCPU / 12 GB RAM (gratis)
-   - SSH-Schlüssel herunterladen und gut aufbewahren
-   - Falls „Out of capacity“ kommt: später nochmals versuchen oder 1 OCPU / 6 GB nehmen.
-3. Öffentliche IP-Adresse der Instanz notieren.
-4. **Ports öffnen:** Instanz → *Subnet* → *Security List* → *Add Ingress Rules* (Quelle `0.0.0.0/0`):
+Der Server läuft entweder **zu Hause auf einem Raspberry Pi** (gratis, ohne Konto, ohne Limits) oder **bei Oracle Cloud** (gratis, braucht aber eine Kreditkarte zur Prüfung).
+
+### Variante A: Raspberry Pi zu Hause (empfohlen)
+Voraussetzung: Raspberry Pi 4 oder 5 (Pi 3 geht auch) mit **Raspberry Pi OS 64-bit**, ca. 2 GB freier Speicher. Läuft problemlos neben anderen Diensten (z.B. einem Stremio-Addon), solange die Ports 80, 443, 7880 und 7881 frei sind.
+
+1. **DuckDNS:** auf **duckdns.org** anmelden, Subdomain anlegen (z.B. `meinegruppe`), oben den **Token** kopieren.
+2. **Router – Port-Weiterleitung** zur festen IP des Pi:
    - TCP **80**, **443**, **7881**
    - UDP **50000–50100**
-
-### 2. Gratis-Adresse bei DuckDNS
-1. Auf **duckdns.org** anmelden, eine Subdomain anlegen, z.B. `meinegruppe` → ergibt `meinegruppe.duckdns.org`.
-2. Bei „current ip“ die IP deines Oracle-Servers eintragen → *update ip*.
-   (`rtc.meinegruppe.duckdns.org` funktioniert automatisch mit.)
-
-### 3. Bubble auf dem Server starten
-Per SSH verbinden (Windows-Terminal):
+3. **Auf dem Pi** (per SSH):
 ```bash
-ssh -i pfad/zum/schluessel.key ubuntu@DEINE-IP
+curl -fsSL https://get.docker.com | sudo sh
+sudo usermod -aG docker $USER && newgrp docker
+git clone https://github.com/erlinxrmj/Bubble.git   # privates Repo: als Passwort einen GitHub-Token eingeben
+cd Bubble
+bash setup.sh                 # fragt nach Domain, Registrierungs-Code und DuckDNS-Token
+docker compose up -d --build
 ```
-Dann:
+Mit dem DuckDNS-Token hält Bubble die Adresse automatisch aktuell, wenn sich deine IP zu Hause ändert.
+
+### Variante B: Oracle Cloud (EU)
+1. Konto auf **cloud.oracle.com** („Always Free“), Heimatregion **Zürich** oder **Frankfurt**.
+2. Instanz: **Ubuntu 24.04**, Shape **VM.Standard.A1.Flex** mit 2 OCPU / 12 GB (Gratis-Grenze), SSH-Schlüssel speichern, öffentliche IP notieren.
+3. *Subnet → Security List → Add Ingress Rules* (`0.0.0.0/0`): TCP **80**, **443**, **7881**, UDP **50000–50100**.
+4. DuckDNS-Subdomain anlegen und die Oracle-IP eintragen.
+5. Per SSH (`ssh -i schluessel.key ubuntu@DEINE-IP`):
 ```bash
-# Oracle-Ubuntu blockiert Ports zusätzlich in der eigenen Firewall – freigeben:
 sudo iptables -I INPUT -p tcp -m multiport --dports 80,443,7881 -j ACCEPT
 sudo iptables -I INPUT -p udp --dport 50000:50100 -j ACCEPT
 sudo netfilter-persistent save
 curl -fsSL https://get.docker.com | sudo sh
 sudo usermod -aG docker $USER && newgrp docker
-git clone https://github.com/erlinxrmj/Bubble.git   # privates Repo: als Passwort einen GitHub-Token eingeben
+git clone https://github.com/erlinxrmj/Bubble.git
 cd Bubble
-bash setup.sh                 # fragt nach Domain und Registrierungs-Code
+bash setup.sh                 # DuckDNS-Token leer lassen
 docker compose up -d --build
 ```
-Test im Browser: `https://meinegruppe.duckdns.org/api/health` → zeigt `"ok": true`.
+
+### Test
+Im Browser: `https://meinegruppe.duckdns.org/api/health` → zeigt `"ok": true`.
 
 **Update später:** `git pull && docker compose up -d --build`
 **Logs ansehen:** `docker compose logs -f server`
-**Backup:** der Ordner `data/` enthält alle Konten, Nachrichten, Bilder und Sounds.
+**Backup:** der Ordner `data/` (und die Datei `.env`) enthält alle Konten, Nachrichten, Bilder und Sounds.
 
 ---
 
@@ -117,4 +121,4 @@ Alle Farbnamen: `bg-app, bg-guilds, bg-sidebar, bg-main, bg-elev, bg-input, bg-h
 ## Gut zu wissen
 - Bildschirm teilen in 1440p/60 FPS braucht ca. 10 Mbit/s Upload bei dir.
 - Hochgeladene Bilder/Sounds sind über einen zufälligen, nicht erratbaren Link erreichbar.
-- Der Oracle-Gratisserver hat 10 TB Datenvolumen pro Monat – für eine Freundesgruppe mehr als genug.
+- Server zu Hause: Beim Bildschirm teilen braucht der Server pro Zuschauer so viel Upload wie die gewählte Qualität (1440p/60 FPS ≈ 10 Mbit/s pro Person).
