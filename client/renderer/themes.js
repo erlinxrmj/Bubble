@@ -25,8 +25,41 @@ const LIGHT_BASE = {
 
 const BUILTIN_THEMES = [
   // ===================== Standard =====================
-  { id: 'bubble', name: 'Bubble', group: 'Standard', dark: true,
-    colors: { accent: '#6366f1', mention: 'rgba(99,102,241,0.16)', 'bg-guilds': '#14151a', 'bg-sidebar': '#1c1d24', 'bg-main': '#23242c', 'bg-elev': '#2a2b35', 'bg-input': '#30313c' } },
+  { id: 'bubble', name: 'Bubble', group: 'Standard', dark: true, blur: '24px', radius: '14px',
+    colors: {
+      'bg-app': '#0a0a18', 'bg-guilds': 'rgba(22,20,48,0.55)', 'bg-sidebar': 'rgba(22,20,46,0.52)', 'bg-main': 'rgba(16,15,36,0.5)',
+      'bg-elev': '#1a1934', 'bg-input': 'rgba(255,255,255,0.07)', 'bg-hover': 'rgba(255,255,255,0.06)', 'bg-active': 'rgba(255,255,255,0.12)',
+      border: 'rgba(255,255,255,0.09)', text: '#e7e6f7', 'text-muted': '#9d9bc4', 'text-strong': '#ffffff',
+      accent: '#7c5cff', 'accent-text': '#ffffff', success: '#34d399', mention: 'rgba(124,92,255,0.2)',
+    },
+    background: { type: 'color', value: '#0a0a18' },
+    css: `
+/* Fliessende Farb-Blasen hinter dem Glas */
+#theme-bg-media::before,#theme-bg-media::after{content:"";position:absolute;border-radius:50%;filter:blur(90px);opacity:.75;}
+#theme-bg-media::before{width:70vmax;height:70vmax;left:-15vmax;top:-25vmax;
+  background:radial-gradient(circle,#4f46e5 0%,#7c3aed 35%,transparent 65%);animation:bubble-a 26s ease-in-out infinite alternate;}
+#theme-bg-media::after{width:60vmax;height:60vmax;right:-20vmax;bottom:-25vmax;
+  background:radial-gradient(circle,#06b6d4 0%,#3b82f6 30%,#db2777 55%,transparent 70%);animation:bubble-b 32s ease-in-out infinite alternate;}
+@keyframes bubble-a{from{transform:translate(0,0) scale(1)}to{transform:translate(25vmax,20vmax) scale(1.2)}}
+@keyframes bubble-b{from{transform:translate(0,0) scale(1.1)}to{transform:translate(-25vmax,-15vmax) scale(.9)}}
+` },
+  { id: 'bubble-hell', name: 'Bubble Hell', group: 'Standard', dark: false, blur: '24px', radius: '14px',
+    colors: {
+      'bg-app': '#eef0ff', 'bg-guilds': 'rgba(255,255,255,0.55)', 'bg-sidebar': 'rgba(255,255,255,0.6)', 'bg-main': 'rgba(255,255,255,0.62)',
+      'bg-elev': '#ffffff', 'bg-input': 'rgba(80,70,180,0.07)', 'bg-hover': 'rgba(80,70,180,0.06)', 'bg-active': 'rgba(80,70,180,0.12)',
+      border: 'rgba(80,70,180,0.12)', text: '#25234a', 'text-muted': '#6b6895', 'text-strong': '#14123a',
+      accent: '#6d4aff', 'accent-text': '#ffffff', success: '#10b981', mention: 'rgba(109,74,255,0.14)',
+    },
+    background: { type: 'color', value: '#eef0ff' },
+    css: `
+#theme-bg-media::before,#theme-bg-media::after{content:"";position:absolute;border-radius:50%;filter:blur(90px);opacity:.6;}
+#theme-bg-media::before{width:70vmax;height:70vmax;left:-15vmax;top:-25vmax;
+  background:radial-gradient(circle,#a5b4fc 0%,#c4b5fd 40%,transparent 65%);animation:bubble-a 26s ease-in-out infinite alternate;}
+#theme-bg-media::after{width:60vmax;height:60vmax;right:-20vmax;bottom:-25vmax;
+  background:radial-gradient(circle,#67e8f9 0%,#93c5fd 30%,#f9a8d4 55%,transparent 70%);animation:bubble-b 32s ease-in-out infinite alternate;}
+@keyframes bubble-a{from{transform:translate(0,0) scale(1)}to{transform:translate(25vmax,20vmax) scale(1.2)}}
+@keyframes bubble-b{from{transform:translate(0,0) scale(1.1)}to{transform:translate(-25vmax,-15vmax) scale(.9)}}
+` },
   { id: 'mitternacht', name: 'Mitternacht', group: 'Standard', dark: true,
     colors: { 'bg-guilds': '#1e1f22', 'bg-sidebar': '#2b2d31', 'bg-main': '#313338', 'bg-elev': '#383a40', 'bg-input': '#383a40', accent: '#5865f2', mention: 'rgba(88,101,242,0.15)' } },
   { id: 'hell', name: 'Hell', group: 'Standard', dark: false,
@@ -38,7 +71,7 @@ const BUILTIN_THEMES = [
     css: '.composer,.btn,.modal,.tile,label input,label select{outline:1px solid rgba(255,255,255,.6)}' },
 
   // ===================== Retro & Konsolen =====================
-  { id: 'aero-messenger', name: 'Aero Messenger 2009', group: 'Retro & Konsolen', dark: false,
+  { id: 'aero-messenger', layout: 'classic', name: 'Aero Messenger 2009', group: 'Retro & Konsolen', dark: false,
     font: '"Segoe UI", Tahoma, sans-serif', radius: '6px', blur: '16px',
     colors: {
       'bg-app': '#cfe7f8', 'bg-guilds': 'rgba(236,245,252,0.82)', 'bg-sidebar': 'rgba(255,255,255,0.82)', 'bg-main': 'rgba(255,255,255,0.9)',
@@ -136,12 +169,12 @@ const BUILTIN_THEMES = [
   { id: 'konsole-gruen', name: 'Konsole Grün', group: 'Retro & Konsolen', dark: true,
     colors: { 'bg-app': '#0b0b0b', 'bg-guilds': '#0e0e0e', 'bg-sidebar': '#161616', 'bg-main': '#1f1f1f', 'bg-elev': '#262626', 'bg-input': '#2c2c2c', accent: '#107c10', mention: 'rgba(16,124,16,0.2)', success: '#5dc21e' },
     css: '.btn.primary,.guild-btn:hover,.guild-btn.active{box-shadow:0 0 12px rgba(16,124,16,.6)}' },
-  { id: 'gameboy', name: 'Game Boy', group: 'Retro & Konsolen', dark: false, font: '"Courier New", monospace', radius: '0px',
+  { id: 'gameboy', layout: 'classic', name: 'Game Boy', group: 'Retro & Konsolen', dark: false, font: '"Courier New", monospace', radius: '0px',
     colors: { 'bg-app': '#0f380f', 'bg-guilds': '#306230', 'bg-sidebar': '#8bac0f', 'bg-main': '#9bbc0f', 'bg-elev': '#9bbc0f', 'bg-input': '#8bac0f',
       'bg-hover': 'rgba(15,56,15,0.12)', 'bg-active': 'rgba(15,56,15,0.24)', border: 'rgba(15,56,15,0.4)', text: '#0f380f', 'text-muted': '#306230', 'text-strong': '#0f380f',
       accent: '#0f380f', 'accent-text': '#9bbc0f', danger: '#0f380f', success: '#306230', mention: 'rgba(15,56,15,0.15)' },
     css: '.avatar{border-radius:0!important;filter:grayscale(1) sepia(1) hue-rotate(40deg) saturate(3)}.guild-btn{border-radius:0}.round,.btn{border:2px solid #0f380f}' },
-  { id: 'windows-xp', name: 'Windows XP', group: 'Retro & Konsolen', dark: false, font: 'Tahoma, "Segoe UI", sans-serif', radius: '4px',
+  { id: 'windows-xp', layout: 'classic', name: 'Windows XP', group: 'Retro & Konsolen', dark: false, font: 'Tahoma, "Segoe UI", sans-serif', radius: '4px',
     colors: { ...LIGHT_BASE, 'bg-app': '#5a7edc', 'bg-guilds': 'linear-gradient(180deg,#3a81f3,#245edb)', 'bg-sidebar': 'linear-gradient(180deg,#7ba2e7,#6375d6)', 'bg-main': '#ffffff', 'bg-elev': '#ece9d8', 'bg-input': '#ffffff', accent: '#3c9c2b', mention: 'rgba(60,156,43,0.12)', text: '#000', 'text-muted': '#4a4a4a', border: 'rgba(0,40,120,0.25)' },
     css: `.sidebar,.sidebar .ch,.sidebar .dm-item,.sidebar .cat,.sidebar .voice-user{color:#fff}
 .sidebar .ch.active,.sidebar .dm-item.active{background:rgba(255,255,255,.25)}
@@ -151,7 +184,7 @@ const BUILTIN_THEMES = [
 .btn.primary{background:linear-gradient(180deg,#5fbe4f,#3c9c2b 50%,#2d8a1e);color:#fff;font-style:italic}
 .modal{background:#ece9d8;border:3px solid #0841c6;border-radius:8px 8px 0 0}
 .status-dot{border-color:transparent}` },
-  { id: 'retro-98', name: 'Retro 98', group: 'Retro & Konsolen', dark: false, font: '"MS Sans Serif", Tahoma, sans-serif', radius: '0px',
+  { id: 'retro-98', layout: 'classic', name: 'Retro 98', group: 'Retro & Konsolen', dark: false, font: '"MS Sans Serif", Tahoma, sans-serif', radius: '0px',
     colors: { 'bg-app': '#008080', 'bg-guilds': '#c0c0c0', 'bg-sidebar': '#c0c0c0', 'bg-main': '#c0c0c0', 'bg-elev': '#c0c0c0', 'bg-input': '#ffffff',
       'bg-hover': 'rgba(0,0,128,0.12)', 'bg-active': '#000080', border: '#808080', text: '#000', 'text-muted': '#404040', 'text-strong': '#000',
       accent: '#000080', 'accent-text': '#fff', mention: 'rgba(0,0,128,0.12)' },
@@ -164,7 +197,7 @@ const BUILTIN_THEMES = [
 .composer,.messages{box-shadow:inset 1px 1px #808080,inset -1px -1px #fff}
 .app{gap:3px;padding:3px}.avatar{border-radius:0!important}
 .modal{box-shadow:inset -1px -1px #0a0a0a,inset 1px 1px #fff,inset -2px -2px #808080,inset 2px 2px #dfdfdf}` },
-  { id: 'terminal', name: 'Terminal Bernstein', group: 'Retro & Konsolen', dark: true, font: 'Consolas, "Courier New", monospace', radius: '2px',
+  { id: 'terminal', layout: 'classic', name: 'Terminal Bernstein', group: 'Retro & Konsolen', dark: true, font: 'Consolas, "Courier New", monospace', radius: '2px',
     colors: { 'bg-app': '#0a0700', 'bg-guilds': '#0a0700', 'bg-sidebar': '#110c00', 'bg-main': '#140e00', 'bg-elev': '#1a1300', 'bg-input': '#1f1700', border: 'rgba(255,176,0,0.25)',
       text: '#ffb000', 'text-muted': '#b07a00', 'text-strong': '#ffc94d', accent: '#ffb000', 'accent-text': '#140e00', mention: 'rgba(255,176,0,0.15)', success: '#ffb000' },
     css: 'body{text-shadow:0 0 4px rgba(255,176,0,.45)}.avatar{filter:sepia(1) saturate(4) hue-rotate(-10deg)}' },
@@ -289,6 +322,9 @@ function applyTheme(theme, opts = {}) {
   root.style.setProperty('--blur', opts.reduceMotion ? '0px' : (theme.blur || '0px'));
   root.style.colorScheme = theme.dark === false ? 'light' : 'dark';
   document.body.dataset.theme = theme.id || 'custom';
+  // Stil: "bubble" (schwebende Glas-Panels, Chat-Blasen) oder "classic" (klassische Liste)
+  const style = opts.style && opts.style !== 'auto' ? opts.style : (theme.layout || 'bubble');
+  document.body.classList.toggle('layout-classic', style === 'classic');
   document.body.classList.toggle('reduce-motion', !!opts.reduceMotion);
 
   const media = document.getElementById('theme-bg-media');
